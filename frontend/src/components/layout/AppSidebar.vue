@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSidebar } from '@/composables/useSidebar'
 import AppLogo from '@/components/common/AppLogo.vue'
 import Icon from '@/components/ui/Icon.vue'
 
-const { isCollapsed, activeMenuId, menus, toggleCollapse, setActiveMenu } = useSidebar()
+const { isCollapsed, activeMenuId, menus, toggleCollapse, setActiveMenu, syncFromRoute } = useSidebar()
+const route = useRoute()
 
 const sidebarWidth = computed(() => isCollapsed.value ? 'w-16' : 'w-60')
+
+// 路由变化时自动同步侧边栏高亮（含首次挂载）
+watch(
+  () => route.path,
+  (path) => syncFromRoute(path),
+  { immediate: true },
+)
 </script>
 
 <template>

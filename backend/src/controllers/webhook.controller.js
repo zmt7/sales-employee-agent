@@ -2,11 +2,46 @@
 // WhatsApp Webhook 控制器
 // ============================================
 
+import crypto from 'crypto'
 import { env } from '../config/env.js'
 import logger from '../utils/logger.js'
 import { saveMessage, saveToRedisHistory, getRedisHistory } from '../services/message.service.js'
 import { askAI } from '../services/ai.service.js'
 import { sendTextMessage } from '../services/whatsapp.service.js'
+
+/**
+ * 校验 X-Hub-Signature-256 签名
+ * 防止伪造的 Webhook 推送
+ */
+export function verifySignature(req, res, buf) {
+  const signature = req.headers['x-hub-signature-256'] || req.headers['X-Hub-Signature-256']
+  const secret = env.WHATSAPP_APP_SECRET
+
+  if (!secret) {
+    // 未配置 App Secret 时跳过校验（开发环境）
+    logger.warn('[Webhook] 未配置 WHATSAPP_APP_SECRET，跳过签名校验')
+    return
+  }
+
+  if (!signature) {
+    logger.error('[Webhook] 缺少 X-Hub-Signature-256 头')
+    res.status(403).send('Forbidden: missing signature')
+    throw new Error('Missing signature')
+  }
+
+  const expectedSignature = `sha256=${crypto
+    .createHmac('sha256', secret)
+    .update(buf)
+    .digest('hex')}`
+
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+    logger.error('[Webhook] 签名校验失败')
+    res.status(403).send('Forbidden: invalid signature')
+    throw new Error('Invalid signature')
+  }
+
+  logger.debug('[Webhook] 签名校验通过')
+}
 
 /**
  * GET /webhook — 验证 Webhook

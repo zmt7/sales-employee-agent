@@ -41,14 +41,16 @@ export async function saveMessage(phone, role, content) {
  * @returns {Promise<Array>}
  */
 export async function getRecentMessages(phone, limit = 20) {
+  // LIMIT 值必须直接拼入 SQL，避免 mysql2 execute 预处理协议的类型问题
+  const safeLimit = Math.max(1, Math.min(Number(limit), 1000))
   const sql = `
     SELECT id, phone, role, content, created_at
     FROM messages
     WHERE phone = ?
     ORDER BY created_at DESC
-    LIMIT ?
+    LIMIT ${safeLimit}
   `
-  const rows = await query(sql, [phone, limit])
+  const rows = await query(sql, [phone])
   return rows.reverse()
 }
 

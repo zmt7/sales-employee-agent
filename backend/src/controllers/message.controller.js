@@ -11,6 +11,7 @@ import {
   getRedisHistory,
 } from '../services/message.service.js'
 import { askAI } from '../services/ai.service.js'
+import { sendTextMessage } from '../services/whatsapp.service.js'
 
 /**
  * GET /api/messages
@@ -91,6 +92,11 @@ export async function sendMessage(req, res) {
 
     // 6. 写入 Redis 历史
     await saveToRedisHistory(phone, 'assistant', aiReply)
+
+    // 7. 通过 WhatsApp 发送给用户（异步，失败不影响返回）
+    sendTextMessage(phone, aiReply).catch((err) => {
+      logger.error('[Message API] WhatsApp 发送失败', err.message)
+    })
 
     return res.json({
       success: true,

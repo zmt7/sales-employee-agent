@@ -2,6 +2,10 @@
 import { ref, nextTick } from 'vue'
 import Icon from '@/components/ui/Icon.vue'
 
+const props = defineProps<{
+  disabled?: boolean
+}>()
+
 const emit = defineEmits<{
   send: [content: string, images?: { url: string; mimeType: string }[]]
 }>()
@@ -108,7 +112,9 @@ function removeImage(id: string) {
       <!-- 表情按钮 -->
       <div class="relative">
         <button
-          class="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-200/70 transition-colors shrink-0"
+          class="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 transition-colors shrink-0"
+          :class="props.disabled ? 'cursor-not-allowed' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/70'"
+          :disabled="props.disabled"
           @click="toggleEmoji"
         >
           <Icon name="Smile" :size="22" />
@@ -136,7 +142,9 @@ function removeImage(id: string) {
 
       <!-- 图片上传按钮 -->
       <button
-        class="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-200/70 transition-colors shrink-0"
+        class="w-9 h-9 flex items-center justify-center rounded-full transition-colors shrink-0"
+        :class="props.disabled ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/70'"
+        :disabled="props.disabled"
         title="发送图片"
         @click="triggerImageUpload"
       >
@@ -158,6 +166,7 @@ function removeImage(id: string) {
           class="wa-textarea w-full min-h-[38px] max-h-[100px] resize-none outline-none text-sm text-gray-800 placeholder-transparent leading-snug rounded-2xl px-4 py-2 bg-transparent"
           placeholder="输入消息..."
           rows="1"
+          :disabled="props.disabled"
           @keydown="handleKeydown"
         />
       </div>
@@ -165,10 +174,10 @@ function removeImage(id: string) {
       <!-- 发送按钮 -->
       <button
         class="w-10 h-10 flex items-center justify-center rounded-full shrink-0 transition-all"
-        :class="inputText.trim() || uploadedImages.length > 0
+        :class="(!props.disabled && (inputText.trim() || uploadedImages.length > 0))
           ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-95 shadow-md'
           : 'bg-gray-200 text-gray-400'"
-        :disabled="!inputText.trim() && uploadedImages.length === 0"
+        :disabled="props.disabled || (!inputText.trim() && uploadedImages.length === 0)"
         @click="handleSend"
       >
         <Icon name="Send" :size="17" />

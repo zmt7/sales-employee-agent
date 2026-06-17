@@ -5,6 +5,7 @@ import Icon from '@/components/ui/Icon.vue'
 const props = defineProps<{
   contacts: WhatsAppContact[]
   selectedId: string
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -47,6 +48,13 @@ function avatarColor(id: string): string {
 
     <!-- Contact List -->
     <div class="flex-1 overflow-y-auto">
+      <!-- 加载中 -->
+      <div v-if="props.loading" class="flex justify-center py-12">
+        <span class="text-xs text-gray-400">加载中...</span>
+      </div>
+
+      <!-- 联系人 -->
+      <template v-else>
       <div
         v-for="contact in props.contacts"
         :key="contact.id"
@@ -96,6 +104,7 @@ function avatarColor(id: string): string {
         </div>
         <p class="text-xs text-gray-400">暂无消息</p>
       </div>
+      </template>
     </div>
   </div>
 </template>

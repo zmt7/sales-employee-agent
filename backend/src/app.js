@@ -22,8 +22,14 @@ app.use(cors({
   credentials: true,
 }))
 
-// JSON 解析（webhook 需要 raw body，但 WhatsApp 发的是 JSON，所以这里用 express.json）
-app.use(express.json({ limit: '1mb' }))
+// JSON 解析（webhook 需要 raw body，verify 回调保存原始 Buffer）
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, _res, buf) => {
+    // 保存原始 body Buffer，供 webhook 签名校验使用
+    req.rawBody = buf
+  },
+}))
 
 // 请求日志
 app.use((req, _res, next) => {

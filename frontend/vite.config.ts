@@ -13,6 +13,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // 后端 API 代理（优先级高于下方 /api 通用代理）
       '/api/deepseek': {
         target: 'https://api.deepseek.com',
         changeOrigin: true,
@@ -23,6 +24,11 @@ export default defineConfig({
         target: 'https://api.openai.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/openai/, ''),
+      },
+      // 通用 /api 转发到后端（匹配 /api/messages 等）
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
       },
     },
   },

@@ -8,11 +8,12 @@ import ChatInput from './ChatInput.vue'
 const props = defineProps<{
   contact: WhatsAppContact | null
   messages: WhatsAppMessage[]
+  loading?: boolean
+  sending?: boolean
 }>()
 
 const emit = defineEmits<{
   send: [content: string, images?: { url: string; mimeType: string }[]]
-  userReply: []
 }>()
 
 const chatBodyRef = ref<HTMLElement | null>(null)
@@ -115,10 +116,15 @@ function avatarColor(id: string): string {
         ref="chatBodyRef"
         class="flex-1 overflow-y-auto px-4 py-3 space-y-0.5"
       >
+        <!-- 加载中 -->
+        <div v-if="props.loading" class="flex justify-center py-12">
+          <span class="text-xs text-gray-400">加载中...</span>
+        </div>
+
         <!-- 日期分割线 -->
-        <div class="flex justify-center pt-3 pb-1">
+        <div v-if="props.messages.length > 0" class="flex justify-center pt-3 pb-1">
           <span class="text-[10px] text-gray-400 bg-[#f0f2f5] px-2.5 py-0.5 rounded-md">
-            今天
+            最近消息
           </span>
         </div>
 
@@ -129,22 +135,29 @@ function avatarColor(id: string): string {
           :contact-name="contact.name"
         />
 
+        <!-- 发送中 加载指示器 -->
+        <div v-if="props.sending" class="flex justify-end mb-3">
+          <span class="text-[11px] text-gray-400 bg-white/70 px-3 py-2 rounded-lg shadow-sm">AI 回复中...</span>
+        </div>
+
+        <!-- 空状态 -->
+        <div
+          v-if="!props.loading && props.messages.length === 0"
+          class="flex flex-col items-center justify-center py-16"
+        >
+          <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <Icon name="MessageSquare" :size="28" class="text-gray-300" />
+          </div>
+          <p class="text-xs text-gray-400">暂无聊天记录</p>
+          <p class="text-[10px] text-gray-400 mt-1">发送消息开始对话</p>
+        </div>
+
         <!-- 底部留白 -->
         <div class="h-4" />
-
-        <!-- Demo 按钮 -->
-        <div class="flex justify-center pb-2">
-          <button
-            class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium bg-white/70 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all cursor-pointer active:scale-95"
-            @click="emit('userReply')"
-          >
-            + 模拟收到回复
-          </button>
-        </div>
       </div>
 
       <!-- 输入框区域 -->
-      <ChatInput @send="handleSend" />
+      <ChatInput :disabled="props.sending" @send="handleSend" />
     </template>
   </div>
 </template>
